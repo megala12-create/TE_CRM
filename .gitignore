@@ -15,3 +15,8 @@ Screenshots/
 .env*.local
 .env.production*
 .env.neon
+
+# Business data files dropped in for import (never commit)
+*.xlsx
+*.xls
+*.csv

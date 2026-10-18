@@ -103,7 +103,8 @@ export async function saveInvoice(invoiceId: number | null, _prev: ActionState, 
 async function issueInTx(tx: Tx, user: CurrentUser, id: number) {
   const [inv] = await tx.select().from(schema.invoices).where(eq(schema.invoices.id, id)).for("update");
   if (!inv || inv.status !== "draft") throw new Error("Only drafts can be issued");
-  const number = await assignDocNumber(tx, "invoice", inv.date);
+  // Drafts imported from the old CRM already carry their number
+  const number = inv.number ?? (await assignDocNumber(tx, "invoice", inv.date));
   await tx.update(schema.invoices).set({ status: "issued", number, issuedAt: new Date(), updatedAt: new Date() }).where(eq(schema.invoices.id, id));
   await audit({ userId: user.id, action: "issue", entity: "invoice", entityId: id, data: { number } }, tx);
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
-import { Download, Plus } from "lucide-react";
+import { Download, Plus, Upload } from "lucide-react";
 import { db, schema } from "@/db";
 import { requirePermission } from "@/server/auth";
 import { getVisibleFields } from "@/server/custom-fields";
@@ -112,6 +112,8 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
             <LinkButton variant="secondary" href={buildHref("/api/export/customers", params)} prefetch={false}>
               <Download className="size-4" /> Export
             </LinkButton>
+            {can(user, "customers.create") ? <LinkButton variant="secondary" href="/import/customers"><Upload className="size-4" /> Import</LinkButton> : null}
+            {can(user, "customers.edit") ? <LinkButton variant="secondary" href="/import/contacts"><Upload className="size-4" /> Import contacts</LinkButton> : null}
             {can(user, "customers.create") ? (
               <LinkButton href="/customers/new">
                 <Plus className="size-4" /> New customer

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
-import { FileOutput, Pencil, Plus, Printer } from "lucide-react";
+import { FileOutput, Pencil, Plus, Printer, Upload } from "lucide-react";
 import { db, schema } from "@/db";
 import { requirePermission } from "@/server/auth";
 import { getCompany } from "@/server/settings";
@@ -80,7 +80,12 @@ export async function QuotationListView({ kind, searchParams }: { kind: QuoteKin
   return (
     <>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        {can(user, K.perm.create) ? <LinkButton href={`${K.base}/new`}><Plus className="size-4" /> New {K.label.toLowerCase()}</LinkButton> : <span />}
+        {can(user, K.perm.create) ? (
+          <div className="flex flex-wrap gap-2">
+            <LinkButton href={`${K.base}/new`}><Plus className="size-4" /> New {K.label.toLowerCase()}</LinkButton>
+            <LinkButton variant="secondary" href={`/import/${kind === "proforma" ? "proforma" : "quotations"}`}><Upload className="size-4" /> Import</LinkButton>
+          </div>
+        ) : <span />}
         <ColumnChooser columns={cols.options} selected={cols.selected} save={saveColumns.bind(null, listKey)} />
       </div>
       <h1 className="sr-only">{K.plural}</h1>

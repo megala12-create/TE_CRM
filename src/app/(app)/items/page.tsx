@@ -4,7 +4,8 @@ import { db, schema } from "@/db";
 import { assertPermission, requirePermission } from "@/server/auth";
 import { audit } from "@/server/audit";
 import { getCompany } from "@/server/settings";
-import { Badge, Card, EmptyState, PageHeader } from "@/components/ui";
+import { Upload } from "lucide-react";
+import { Badge, Card, EmptyState, LinkButton, PageHeader } from "@/components/ui";
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { CheckboxField, SelectField, TextAreaField, TextField } from "@/components/fields";
 import { can } from "@/lib/permissions";
@@ -46,7 +47,11 @@ export default async function ItemsPage({ searchParams }: { searchParams: Promis
 
   return (
     <>
-      <PageHeader title="Items & rates" subtitle="Your processes and products with default rate, HSN/SAC and GST — picked when creating invoices." />
+      <PageHeader
+        title="Items & rates"
+        subtitle="Your processes and products with default rate, HSN/SAC and GST — picked when creating invoices."
+        actions={manage ? <LinkButton variant="secondary" href="/import/items"><Upload className="size-4" /> Import</LinkButton> : null}
+      />
       <div className={manage ? "grid gap-5 xl:grid-cols-[1fr_380px]" : ""}>
         <Card>
           {items.length === 0 ? (

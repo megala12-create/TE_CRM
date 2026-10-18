@@ -5,7 +5,8 @@ import { z } from "zod";
 import { db, schema } from "@/db";
 import { assertPermission, requirePermission } from "@/server/auth";
 import { audit } from "@/server/audit";
-import { Badge, Card, EmptyState, PageHeader } from "@/components/ui";
+import { Upload } from "lucide-react";
+import { Badge, Card, EmptyState, LinkButton, PageHeader } from "@/components/ui";
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { CheckboxField, TextAreaField, TextField } from "@/components/fields";
 import { isValidGstin } from "@/lib/gst";
@@ -48,7 +49,11 @@ export default async function VendorsPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <PageHeader title="Vendors" subtitle="Suppliers of films, inks, consumables and services. Used on expenses (and later purchase orders)." />
+      <PageHeader
+        title="Vendors"
+        subtitle="Suppliers of films, inks, consumables and services. Used on expenses (and later purchase orders)."
+        actions={can(user, "purchase.create") ? <LinkButton variant="secondary" href="/import/vendors"><Upload className="size-4" /> Import</LinkButton> : null}
+      />
       <div className={manage ? "grid gap-5 xl:grid-cols-[1fr_380px]" : ""}>
         <Card>
           {vendors.length === 0 ? (

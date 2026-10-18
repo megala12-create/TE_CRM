@@ -11,6 +11,7 @@ import { formatDocNumber, isValidFormat, seriesKey } from "./numbering";
 import { csvRecords, parseCsv, parseDateFlexible } from "./csv";
 import { BANK_SAMPLE_CSV, matchCategory, parseBankStatement, paymentModeFromNarration, suggestCategory } from "./bank-statement";
 import { passwordRule } from "./password";
+import { IMPORT_DEFS, csvTable, groupByNumber, parseAmount, parseDate, parseInvoiceStatus, parsePaymentMode, parsePercent, parseStateCode, parseYesNo, readImportFile, sampleCsv } from "./importing";
 
 describe("money", () => {
   it("converts to and from paise without float errors", () => {
@@ -282,5 +283,50 @@ describe("password rule", () => {
     expect(ok("abcde")).toBe(false);
     expect(ok("12345")).toBe(false);
     expect(passwordRule.safeParse("ab1").error?.issues[0]?.message).toBe("Use at least 5 characters");
+  });
+});
+
+describe("imports", () => {
+  const inv = IMPORT_DEFS.invoices.columns;
+  it("finds the heading row below a title row and maps Perfex headings", () => {
+    const f = readImportFile(
+      [["Invoices"], ["Invoice #", "Amount", "Total Tax", "Year", "Date", "Customer", "Status"], ["TE-25-26-SI-000177", "Rs. 131,658.50", "Rs. 20,083.50", "2026", "46121", "Hawk II Clothings", "Paid"]],
+      inv,
+    );
+    expect(f.ok).toBe(true);
+    if (!f.ok) return;
+    expect(f.ignored).toEqual(["Year"]);
+    expect(f.rows[0]).toMatchObject({ line: 3, values: { number: "TE-25-26-SI-000177", total: "Rs. 131,658.50", totalTax: "Rs. 20,083.50", date: "46121", customer: "Hawk II Clothings", status: "Paid" } });
+  });
+  it("reports missing required columns", () => {
+    const f = readImportFile([["Name", "Rate"], ["X", "5"]], IMPORT_DEFS.items.columns);
+    expect(f.ok).toBe(false);
+    if (!f.ok) expect(f.error).toMatch(/Missing column: GST %/);
+  });
+  it("parses values the way old exports write them", () => {
+    expect(parseAmount("Rs. 131,658.50")).toBe("131658.50");
+    expect(parseDate("46121")).toBe("2026-04-09");
+    expect(parseDate("09-Apr-2026")).toBe("2026-04-09");
+    expect(parsePercent("18%")).toBe("18");
+    expect(parseStateCode("Tamil Nadu")).toBe("33");
+    expect(parseStateCode("29-Karnataka")).toBe("29");
+    expect(parseStateCode("Narnia")).toBeNull();
+    expect(parsePaymentMode("NEFT")).toBe("bank");
+    expect(parsePaymentMode("GPay")).toBe("upi");
+    expect(parseInvoiceStatus("Paid")).toEqual({ status: "issued", paid: true });
+    expect(parseInvoiceStatus("Cancelled")).toEqual({ status: "cancelled", paid: false });
+    expect(parseInvoiceStatus("weird")).toBeNull();
+    expect(parseYesNo("", true)).toBe(true);
+    expect(parseYesNo("maybe", true)).toBeNull();
+  });
+  it("groups line rows by document number", () => {
+    const rows = [1, 2, 3].map((line, i) => ({ line, values: { number: ["A-1", "a-1", "B-2"][i]! }, extra: {} }));
+    expect(groupByNumber(rows).map((g) => [g.number, g.rows.length])).toEqual([["A-1", 2], ["B-2", 1]]);
+  });
+  it("every sample file passes its own column check", () => {
+    for (const [entity, def] of Object.entries(IMPORT_DEFS)) {
+      const f = readImportFile(csvTable(sampleCsv(entity as keyof typeof IMPORT_DEFS)), def.columns);
+      expect(f.ok, entity).toBe(true);
+    }
   });
 });

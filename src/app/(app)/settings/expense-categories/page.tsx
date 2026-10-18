@@ -2,7 +2,8 @@ import Link from "next/link";
 import { asc, eq, ilike, or, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { requirePermission } from "@/server/auth";
-import { Badge, Card, EmptyState, PageHeader } from "@/components/ui";
+import { Upload } from "lucide-react";
+import { Badge, Card, EmptyState, LinkButton, PageHeader } from "@/components/ui";
 import { ActionForm, FieldError, SubmitButton } from "@/components/action-form";
 import { CheckboxField, TextAreaField, TextField } from "@/components/fields";
 import { SearchBox } from "@/components/list-tools";
@@ -46,6 +47,7 @@ export default async function ExpenseCategoriesPage({ searchParams }: { searchPa
       <PageHeader
         title="Expense categories"
         subtitle="The master list used on expenses, imports and reports. Hidden categories stay on old expenses but can't be picked for new ones."
+        actions={can(user, "expense_categories.create") ? <LinkButton variant="secondary" href="/import/expense_categories"><Upload className="size-4" /> Import</LinkButton> : null}
       />
       {sp.merged ? <div role="status" className="mb-4 rounded-md bg-emerald-50 px-4 py-2 text-sm text-emerald-800">Merged: {strParam(sp.merged)}</div> : null}
       <div className="grid gap-5 xl:grid-cols-[1fr_380px]">

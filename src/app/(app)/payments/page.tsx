@@ -1,7 +1,8 @@
 import { and, desc, gte, ilike, lte, or, sql } from "drizzle-orm";
-import { Download } from "lucide-react";
+import { Download, Upload } from "lucide-react";
 import { db, schema } from "@/db";
 import { requirePermission } from "@/server/auth";
+import { can } from "@/lib/permissions";
 import { paymentRowsQuery } from "@/server/payment-queries";
 import { Card, LinkButton, PageHeader, StatCard } from "@/components/ui";
 import { Pagination, SearchBox, buildHref } from "@/components/list-tools";
@@ -14,7 +15,7 @@ export const metadata = { title: "Payments" };
 const PAGE_SIZE = 25;
 
 export default async function PaymentsPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
-  await requirePermission("payments.view");
+  const user = await requirePermission("payments.view");
   const sp = await searchParams;
   const q = strParam(sp.q);
   const page = intParam(sp.page, 1);
@@ -41,9 +42,12 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
         title="Payments"
         subtitle="Record payments from an invoice's page."
         actions={
-          <LinkButton variant="secondary" href={buildHref("/api/export/payments", { q: q || undefined })} prefetch={false}>
-            <Download className="size-4" /> Export
-          </LinkButton>
+          <>
+            {can(user, "payments.create") ? <LinkButton variant="secondary" href="/import/payments"><Upload className="size-4" /> Import</LinkButton> : null}
+            <LinkButton variant="secondary" href={buildHref("/api/export/payments", { q: q || undefined })} prefetch={false}>
+              <Download className="size-4" /> Export
+            </LinkButton>
+          </>
         }
       />
       <div className="mb-5 grid grid-cols-2 gap-3">

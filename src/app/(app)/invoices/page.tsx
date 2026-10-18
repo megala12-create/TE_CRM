@@ -1,5 +1,5 @@
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
-import { FileText, Plus, Repeat } from "lucide-react";
+import { FileText, Plus, Repeat, Upload } from "lucide-react";
 import { db, schema } from "@/db";
 import { requirePermission } from "@/server/auth";
 import { getVisibleFields } from "@/server/custom-fields";
@@ -81,6 +81,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
           {can(user, "payments.create") ? (
             <LinkButton href="/invoices/batch-payments"><FileText className="size-4" /> Batch payments</LinkButton>
           ) : null}
+          {can(user, "invoices.create") ? <LinkButton variant="secondary" href="/import/invoices"><Upload className="size-4" /> Import</LinkButton> : null}
           <LinkButton variant="secondary" href={recurring ? "/invoices" : "/invoices?recurring=1"}>
             <Repeat className="size-4" /> {recurring ? "All invoices" : "Recurring invoices"}
           </LinkButton>
