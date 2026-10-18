@@ -16,7 +16,7 @@ import { invoiceStateWhere } from "@/server/invoice-queries";
 import { can } from "@/lib/permissions";
 import { formatINR, formatPaise, fromPaise, toPaise } from "@/lib/money";
 import { formatDate } from "@/lib/format";
-import { resolvePeriod } from "@/lib/periods";
+import { ALL_FROM, ALL_TO, periodText, resolvePeriod } from "@/lib/periods";
 import { cn, intParam } from "@/lib/utils";
 
 export const SALES_REPORTS = [
@@ -76,7 +76,7 @@ export async function SalesReports({ user, sp, today }: { user: CurrentUser; sp:
         </div>
       </div>
 
-      {report ? <h2 className="mb-3 text-base font-semibold text-slate-900">Generated report <span className="font-normal text-slate-500">· {formatDate(range.from)} to {formatDate(range.to)}</span></h2> : null}
+      {report ? <h2 className="mb-3 text-base font-semibold text-slate-900">Generated report <span className="font-normal text-slate-500">· {periodText(range, formatDate)}</span></h2> : null}
       {report === "invoices" ? <InvoicesReport user={user} sp={sp} from={range.from} to={range.to} today={today} /> : null}
       {report === "services" ? <ServicesReport user={user} from={range.from} to={range.to} /> : null}
       {report === "payments" ? <PaymentsReport user={user} from={range.from} to={range.to} /> : null}
@@ -381,7 +381,10 @@ async function TotalIncomeChart({ user, from, to }: { user: CurrentUser; from: s
     .groupBy(sql`to_char(${p.date}, 'YYYY-MM')`)
     .orderBy(sql`to_char(${p.date}, 'YYYY-MM')`);
   const months: string[] = [];
-  for (let d = from.slice(0, 7); d <= to.slice(0, 7); ) {
+  // "All": run from the first to the last month with payments instead of the open-ended bounds
+  const start = from === ALL_FROM ? (rows[0]?.m ?? to.slice(0, 7)) : from.slice(0, 7);
+  const end = to === ALL_TO ? (rows.at(-1)?.m ?? start) : to.slice(0, 7);
+  for (let d = start; d <= end; ) {
     months.push(d);
     const [y, m] = d.split("-").map(Number) as [number, number];
     d = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;

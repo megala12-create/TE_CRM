@@ -4,7 +4,7 @@ import { fromPaise, mulPaise, toPaise } from "./money";
 import { can, viewScope, ALL_PERMISSIONS } from "./permissions";
 import { canEditField, canSeeField, parseCustomFields, slugifyKey, type CustomFieldDef } from "./custom-fields";
 import { numberToIndianWords, rupeesInWords } from "./words";
-import { resolvePeriod } from "./periods";
+import { periodText, resolvePeriod } from "./periods";
 import { invoiceState } from "./invoice-status";
 import { expenseTaxOptions, expenseTotals, nextOccurrence, parseTaxValue } from "./expense";
 import { formatDocNumber, isValidFormat, seriesKey } from "./numbering";
@@ -265,6 +265,9 @@ describe("periods and invoice state", () => {
     expect(resolvePeriod("nonsense", "2026-12-14")).toMatchObject({ from: "2026-12-01", to: "2026-12-31", period: "this_month" });
     expect(resolvePeriod("last_month", "2026-01-15")).toMatchObject({ from: "2025-12-01", to: "2025-12-31" });
     expect(resolvePeriod("this_month", "2026-02-10")).toMatchObject({ from: "2026-02-01", to: "2026-02-28" });
+    expect(resolvePeriod("all", "2026-10-18")).toMatchObject({ from: "2000-01-01", to: "2099-12-31", period: "all" });
+    expect(periodText(resolvePeriod("all", "2026-10-18"), (d) => d)).toBe("All dates");
+    expect(periodText(resolvePeriod("last_month", "2026-10-18"), (d) => d)).toBe("2026-09-01 to 2026-09-30");
   });
   it("derives invoice state", () => {
     const inv = { status: "issued", total: "100.00", amountPaid: "0", dueDate: "2026-10-01" };

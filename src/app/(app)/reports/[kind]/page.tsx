@@ -24,7 +24,7 @@ export default async function ReportPage({
     case "sales":
       return <SalesReports user={user} sp={sp} today={today} />;
     case "expenses":
-      return <ExpensesReport user={user} year={intParam(sp.year, Number(today.slice(0, 4)))} excludeBillable={sp.exclude_billable === "1"} />;
+      return <ExpensesReport user={user} year={sp.year === "all" ? 0 : intParam(sp.year, Number(today.slice(0, 4)))} excludeBillable={sp.exclude_billable === "1"} />;
     case "income-expense":
       return <ReportView kind="income-expense" user={user} today={today} sp={{ period: sp.period ?? "", from: sp.from ?? "", to: sp.to ?? "" }} />;
     default:

@@ -27,11 +27,11 @@ export function PeriodPicker({
       </div>
       <div>
         <label htmlFor="from" className="label">From</label>
-        <input id="from" name="from" type="date" defaultValue={from} className="input" />
+        <input id="from" name="from" type="date" defaultValue={period === "all" ? "" : from} className="input" />
       </div>
       <div>
         <label htmlFor="to" className="label">To</label>
-        <input id="to" name="to" type="date" defaultValue={to} className="input" />
+        <input id="to" name="to" type="date" defaultValue={period === "all" ? "" : to} className="input" />
       </div>
       <button type="submit" className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
         Apply

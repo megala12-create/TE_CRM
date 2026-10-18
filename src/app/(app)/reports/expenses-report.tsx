@@ -12,21 +12,26 @@ import { buildHref } from "@/components/list-tools";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-/** Reports → Expenses: category × month matrix for a year, plus billable / not-billable charts. */
+/**
+ * Reports → Expenses: category × month matrix for a year, plus billable / not-billable charts.
+ * year = 0 means "All": one column per year instead of per month.
+ */
 export async function ExpensesReport({ user, year, excludeBillable }: { user: CurrentUser; year: number; excludeBillable: boolean }) {
   const e = schema.expenses;
-  const inYear = and(gte(e.date, `${year}-01-01`), lte(e.date, `${year}-12-31`), expenseScope(user));
+  const all = year === 0;
+  const inYear = and(all ? undefined : and(gte(e.date, `${year}-01-01`), lte(e.date, `${year}-12-31`)), expenseScope(user));
+  const bucket = all ? sql`extract(year from ${e.date})` : sql`extract(month from ${e.date})`;
   const [cells, categories, byBillable, years] = await Promise.all([
     db
       .select({
         categoryId: e.categoryId,
-        month: sql<number>`extract(month from ${e.date})::int`,
+        month: sql<number>`${bucket}::int`,
         amount: sql<string>`sum(${e.amount})`,
         tax: sql<string>`sum(${e.taxAmount})`,
       })
       .from(e)
       .where(and(inYear, excludeBillable ? eq(e.billable, false) : undefined))
-      .groupBy(e.categoryId, sql`extract(month from ${e.date})`),
+      .groupBy(e.categoryId, bucket),
     db.select({ id: schema.expenseCategories.id, name: schema.expenseCategories.name }).from(schema.expenseCategories).orderBy(schema.expenseCategories.name),
     db
       .select({ categoryId: e.categoryId, billable: e.billable, total: sql<string>`sum(${e.total})` })
@@ -42,7 +47,14 @@ export async function ExpensesReport({ user, year, excludeBillable }: { user: Cu
   const catYear = (catId: number) => cells.filter((c) => c.categoryId === catId).reduce((s, c) => s + toPaise(c.amount), 0);
   const yearNet = cells.reduce((s, c) => s + toPaise(c.amount), 0);
   const yearTax = cells.reduce((s, c) => s + toPaise(c.tax), 0);
-  const yearOptions = [...new Set([year, new Date().getFullYear(), ...years.map((y) => y.y)])].sort((a, b) => b - a);
+  const yearOptions = [...new Set([...(all ? [] : [year]), new Date().getFullYear(), ...years.map((y) => y.y)])].sort((a, b) => b - a);
+  // Columns: the 12 months of the year, or every year that has expenses
+  const columns = all
+    ? [...years.map((y) => y.y)].sort((a, b) => a - b).map((y) => ({ key: y, label: String(y) }))
+    : MONTHS.map((m, i) => ({ key: i + 1, label: m }));
+  const totalLabel = all ? "Total (all years)" : `Year (${year})`;
+  const periodLabel = all ? "all years" : String(year);
+  const expensesHref = (category?: number) => buildHref("/expenses", { year: all ? undefined : String(year), category: category ? String(category) : undefined });
   const chartValues = (billable: boolean) =>
     categories.map((c) => toPaise(byBillable.find((b) => b.categoryId === c.id && b.billable === billable)?.total) / 100);
 
@@ -50,7 +62,8 @@ export async function ExpensesReport({ user, year, excludeBillable }: { user: Cu
     <>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <Form action="/reports/expenses" className="flex flex-wrap items-center gap-3">
-          <select name="year" defaultValue={year} className="input w-auto" aria-label="Year">
+          <select name="year" defaultValue={all ? "all" : year} className="input w-auto" aria-label="Year">
+            <option value="all">All</option>
             {yearOptions.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
           <label className="flex items-center gap-2 text-sm text-slate-700">
@@ -61,10 +74,10 @@ export async function ExpensesReport({ user, year, excludeBillable }: { user: Cu
         </Form>
         <div className="flex gap-2">
           <LinkButton variant="secondary" href={buildHref("/api/export/expenses", {})} prefetch={false}><Download className="size-4" /> Export</LinkButton>
-          <LinkButton href={`/expenses?year=${year}`} className="bg-emerald-600 hover:bg-emerald-700">Detailed report</LinkButton>
+          <LinkButton href={expensesHref()} className="bg-emerald-600 hover:bg-emerald-700">Detailed report</LinkButton>
         </div>
       </div>
-      <h1 className="sr-only">Expenses report {year}</h1>
+      <h1 className="sr-only">Expenses report, {periodLabel}</h1>
 
       <Card>
         {categories.length === 0 ? <EmptyState title="No expense categories yet" /> : (
@@ -73,17 +86,17 @@ export async function ExpensesReport({ user, year, excludeBillable }: { user: Cu
               <thead>
                 <tr>
                   <th className="th">Category</th>
-                  {MONTHS.map((m) => <th key={m} className="th text-right">{m}</th>)}
-                  <th className="th text-right">Year ({year})</th>
+                  {columns.map((c) => <th key={c.key} className="th text-right">{c.label}</th>)}
+                  <th className="th text-right">{totalLabel}</th>
                 </tr>
               </thead>
               <tbody>
                 {categories.map((c) => (
                   <tr key={c.id} className="hover:bg-slate-50">
                     <td className="td whitespace-nowrap font-medium text-slate-800">
-                      <Link href={`/expenses?year=${year}&category=${c.id}`} className="hover:underline">{c.name}</Link>
+                      <Link href={expensesHref(c.id)} className="hover:underline">{c.name}</Link>
                     </td>
-                    {MONTHS.map((_, i) => <td key={i} className="td whitespace-nowrap text-right tabular-nums">{formatPaise(toPaise(cell(c.id, i + 1)?.amount))}</td>)}
+                    {columns.map((col) => <td key={col.key} className="td whitespace-nowrap text-right tabular-nums">{formatPaise(toPaise(cell(c.id, col.key)?.amount))}</td>)}
                     <td className="td whitespace-nowrap text-right font-medium tabular-nums">{formatPaise(catYear(c.id))}</td>
                   </tr>
                 ))}
@@ -91,17 +104,17 @@ export async function ExpensesReport({ user, year, excludeBillable }: { user: Cu
               <tfoot className="font-semibold">
                 <tr>
                   <td className="td">Net amount (subtotal)</td>
-                  {MONTHS.map((_, i) => <td key={i} className="td whitespace-nowrap text-right tabular-nums">{formatPaise(monthNet(i + 1))}</td>)}
+                  {columns.map((col) => <td key={col.key} className="td whitespace-nowrap text-right tabular-nums">{formatPaise(monthNet(col.key))}</td>)}
                   <td className="td whitespace-nowrap text-right tabular-nums">{formatPaise(yearNet)}</td>
                 </tr>
                 <tr>
                   <td className="td">Total tax</td>
-                  {MONTHS.map((_, i) => <td key={i} className="td whitespace-nowrap text-right tabular-nums">{formatPaise(monthTax(i + 1))}</td>)}
+                  {columns.map((col) => <td key={col.key} className="td whitespace-nowrap text-right tabular-nums">{formatPaise(monthTax(col.key))}</td>)}
                   <td className="td whitespace-nowrap text-right tabular-nums">{formatPaise(yearTax)}</td>
                 </tr>
                 <tr>
                   <td className="td">Total</td>
-                  {MONTHS.map((_, i) => <td key={i} className="td whitespace-nowrap text-right tabular-nums">{formatPaise(monthNet(i + 1) + monthTax(i + 1))}</td>)}
+                  {columns.map((col) => <td key={col.key} className="td whitespace-nowrap text-right tabular-nums">{formatPaise(monthNet(col.key) + monthTax(col.key))}</td>)}
                   <td className="td whitespace-nowrap text-right tabular-nums">{formatPaise(yearNet + yearTax)}</td>
                 </tr>
               </tfoot>
@@ -113,12 +126,12 @@ export async function ExpensesReport({ user, year, excludeBillable }: { user: Cu
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
         <Card title="Not billable expenses by categories">
           <div className="p-4">
-            <ColumnChart ariaLabel={`Not billable expenses by category, ${year}`} categories={categories.map((c) => c.name)} series={[{ name: "Not billable", values: chartValues(false) }]} rotateLabels />
+            <ColumnChart ariaLabel={`Not billable expenses by category, ${periodLabel}`} categories={categories.map((c) => c.name)} series={[{ name: "Not billable", values: chartValues(false) }]} rotateLabels />
           </div>
         </Card>
         <Card title="Billable expenses by categories">
           <div className="p-4">
-            <ColumnChart ariaLabel={`Billable expenses by category, ${year}`} categories={categories.map((c) => c.name)} series={[{ name: "Billable", values: chartValues(true) }]} rotateLabels />
+            <ColumnChart ariaLabel={`Billable expenses by category, ${periodLabel}`} categories={categories.map((c) => c.name)} series={[{ name: "Billable", values: chartValues(true) }]} rotateLabels />
           </div>
         </Card>
       </div>

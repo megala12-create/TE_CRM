@@ -6,7 +6,7 @@ import type { CurrentUser } from "@/server/auth";
 import { Card, PageHeader, StatCard } from "@/components/ui";
 import { PeriodPicker } from "@/components/period-picker";
 import { formatPaise, toPaise } from "@/lib/money";
-import { resolvePeriod } from "@/lib/periods";
+import { periodText, resolvePeriod } from "@/lib/periods";
 import { cn } from "@/lib/utils";
 
 export type ReportKind = "sales" | "expenses" | "income-expense";
@@ -66,7 +66,7 @@ export async function ReportView({ kind, user, sp, today }: { kind: ReportKind; 
 
   return (
     <>
-      <PageHeader title={TITLES[kind]} subtitle={`${range.from.split("-").reverse().join("-")} to ${range.to.split("-").reverse().join("-")}`} />
+      <PageHeader title={TITLES[kind]} subtitle={periodText(range, (d) => d.split("-").reverse().join("-"))} />
       <div className="mb-4 flex flex-wrap gap-1">
         {(Object.keys(TITLES) as ReportKind[]).map((k) => (
           <Link key={k} href={`/reports/${k}`} className={cn("rounded-md px-3 py-1.5 text-sm font-medium", k === kind ? "bg-brand-600 text-white" : "text-slate-600 hover:bg-slate-100")}>

@@ -1,6 +1,7 @@
 import { addDays } from "./format";
 
 export const PERIODS = [
+  { value: "all", label: "All" },
   { value: "this_month", label: "This month" },
   { value: "this_week", label: "This week" },
   { value: "this_year", label: "This year" },
@@ -11,6 +12,15 @@ export const PERIODS = [
   { value: "last_12_months", label: "Last 12 months" },
   { value: "custom", label: "Custom range" },
 ] as const;
+
+/** "All" covers every record; these bounds are never shown to users. */
+export const ALL_FROM = "2000-01-01";
+export const ALL_TO = "2099-12-31";
+
+/** "All dates" or "01-04-2026 to 30-04-2026" (dates formatted by `fmt`). */
+export function periodText(range: { from: string; to: string; period: string }, fmt: (iso: string) => string): string {
+  return range.period === "all" ? "All dates" : `${fmt(range.from)} to ${fmt(range.to)}`;
+}
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -30,6 +40,8 @@ export function resolvePeriod(period: string, today: string, from?: string, to?:
   const monthEnd = addDays(monthsBack(-1), -1); // last day of the current month
   const fyStart = m >= 4 ? y : y - 1;
   switch (period) {
+    case "all":
+      return { from: ALL_FROM, to: ALL_TO, period };
     case "last_3_months":
       return { from: monthsBack(2), to: monthEnd, period };
     case "last_6_months":

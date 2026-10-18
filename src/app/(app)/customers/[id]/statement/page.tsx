@@ -8,7 +8,7 @@ import { PeriodPicker } from "@/components/period-picker";
 import { PrintButton } from "@/components/print-button";
 import { formatPaise } from "@/lib/money";
 import { formatDate, todayISO } from "@/lib/format";
-import { resolvePeriod } from "@/lib/periods";
+import { periodText, resolvePeriod } from "@/lib/periods";
 import { strParam } from "@/lib/utils";
 
 type SP = { period?: string; from?: string; to?: string };
@@ -41,7 +41,7 @@ export default async function StatementPage({ params, searchParams }: { params: 
               <div className="text-slate-600">{[company.address, company.city, company.state].filter(Boolean).join(", ")}</div>
               {company.gstin ? <div>GSTIN: {company.gstin}</div> : null}
               <dl className="mt-4 space-y-1">
-                <div className="text-xs text-slate-500">{formatDate(range.from)} to {formatDate(range.to)}</div>
+                <div className="text-xs text-slate-500">{periodText(range, formatDate)}</div>
                 <Row label="Opening balance" value={st.opening} />
                 <Row label="Invoiced amount" value={st.invoiced} />
                 <Row label="Amount paid" value={st.paid} />
@@ -66,7 +66,7 @@ export default async function StatementPage({ params, searchParams }: { params: 
             </thead>
             <tbody>
               <tr>
-                <td className="td">{formatDate(range.from)}</td>
+                <td className="td">{range.period === "all" ? "" : formatDate(range.from)}</td>
                 <td className="td">Opening balance</td>
                 <td className="td" />
                 <td className="td" />
