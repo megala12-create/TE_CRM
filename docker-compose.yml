@@ -1,0 +1,50 @@
+# Local development: `docker compose up -d db` (database only, app runs with `npm run dev`).
+# Production-style stack: `docker compose --profile prod up -d --build`
+# Override secrets via a .env file next to this compose file (never commit it).
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tecrm
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tecrm_dev_password}
+      POSTGRES_DB: tecrm
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - tecrm_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tecrm"]
+      interval: 5s
+      retries: 10
+
+  migrate:
+    profiles: ["prod"]
+    build: { context: ., target: migrate }
+    environment:
+      DATABASE_URL: postgres://tecrm:${POSTGRES_PASSWORD:-tecrm_dev_password}@db:5432/tecrm
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@tiruppurembossing.com}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?Set SEED_ADMIN_PASSWORD}
+      SEED_DEMO_DATA: "false"
+    depends_on:
+      db: { condition: service_healthy }
+
+  app:
+    profiles: ["prod"]
+    build: { context: ., target: runner }
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://tecrm:${POSTGRES_PASSWORD:-tecrm_dev_password}@db:5432/tecrm
+      UPLOAD_DIR: /app/storage/uploads
+      CRON_SECRET: ${CRON_SECRET:-}
+    volumes:
+      - tecrm_files:/app/storage
+    ports:
+      - "3000:3000"
+    depends_on:
+      db: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+
+volumes:
+  tecrm_pg:
+  tecrm_files:
