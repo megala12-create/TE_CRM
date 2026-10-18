@@ -10,6 +10,7 @@ import { expenseTaxOptions, expenseTotals, nextOccurrence, parseTaxValue } from 
 import { formatDocNumber, isValidFormat, seriesKey } from "./numbering";
 import { csvRecords, parseCsv, parseDateFlexible } from "./csv";
 import { BANK_SAMPLE_CSV, matchCategory, parseBankStatement, paymentModeFromNarration, suggestCategory } from "./bank-statement";
+import { passwordRule } from "./password";
 
 describe("money", () => {
   it("converts to and from paise without float errors", () => {
@@ -270,5 +271,16 @@ describe("periods and invoice state", () => {
     expect(invoiceState({ ...inv, dueDate: "2026-11-01" }, "2026-10-12")).toBe("unpaid");
     expect(invoiceState({ ...inv, amountPaid: "40" , dueDate: "2026-11-01" }, "2026-10-12")).toBe("partially_paid");
     expect(invoiceState({ ...inv, amountPaid: "100.00" }, "2026-10-12")).toBe("paid");
+  });
+});
+
+describe("password rule", () => {
+  const ok = (p: string) => passwordRule.safeParse(p).success;
+  it("needs 5+ characters with letters and numbers", () => {
+    expect(ok("abc12")).toBe(true);
+    expect(ok("ab12")).toBe(false);
+    expect(ok("abcde")).toBe(false);
+    expect(ok("12345")).toBe(false);
+    expect(passwordRule.safeParse("ab1").error?.issues[0]?.message).toBe("Use at least 5 characters");
   });
 });

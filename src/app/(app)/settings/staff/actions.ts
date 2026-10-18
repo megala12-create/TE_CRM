@@ -7,12 +7,8 @@ import { z } from "zod";
 import { db, schema } from "@/db";
 import { assertPermission, hashPassword, revokeUserSessions } from "@/server/auth";
 import { audit } from "@/server/audit";
+import { passwordRule } from "@/lib/password";
 import { str, optStr, type ActionState } from "@/lib/utils";
-
-const passwordRule = z
-  .string()
-  .min(5, "Use at least 5 characters")
-  .refine((p) => /[A-Za-z]/.test(p) && /\d/.test(p), "Use letters and numbers");
 
 async function otherActiveAdmins(excludeId: number) {
   const [row] = await db

@@ -1,5 +1,6 @@
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { CheckboxField, FormGrid, FormSection, SelectField, TextField } from "@/components/fields";
+import { PASSWORD_HINT } from "@/lib/password";
 import type { ActionState } from "@/lib/utils";
 
 export function StaffForm({
@@ -28,7 +29,7 @@ export function StaffForm({
             type="password"
             required={isNew}
             autoComplete="new-password"
-            hint={isNew ? "At least 5 characters with letters and numbers." : "Leave blank to keep the current password. Changing it logs the user out everywhere."}
+            hint={isNew ? PASSWORD_HINT : "Leave blank to keep the current password. Changing it logs the user out everywhere."}
           />
         </FormGrid>
       </FormSection>

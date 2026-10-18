@@ -2,7 +2,8 @@
 
 import { useState, type ReactNode } from "react";
 import Form from "next/form";
-import { LogOut, Menu, Search } from "lucide-react";
+import Link from "next/link";
+import { KeyRound, LogOut, Menu, Search } from "lucide-react";
 import { Sidebar } from "./sidebar";
 import type { NavItem } from "@/lib/navigation";
 import { initials } from "@/lib/format";
@@ -53,6 +54,9 @@ export function AppFrame({
             <div className="flex size-8 items-center justify-center rounded-full bg-brand-600 text-xs font-semibold text-white" aria-hidden>
               {initials(user.name)}
             </div>
+            <Link href="/account/password" className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800" title="Change password" aria-label="Change password">
+              <KeyRound className="size-4" />
+            </Link>
             <form action={logout}>
               <button type="submit" className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800" title="Log out" aria-label="Log out">
                 <LogOut className="size-4" />
