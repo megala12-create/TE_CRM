@@ -11,7 +11,7 @@ import { str, optStr, type ActionState } from "@/lib/utils";
 
 const passwordRule = z
   .string()
-  .min(10, "Use at least 10 characters")
+  .min(5, "Use at least 5 characters")
   .refine((p) => /[A-Za-z]/.test(p) && /\d/.test(p), "Use letters and numbers");
 
 async function otherActiveAdmins(excludeId: number) {

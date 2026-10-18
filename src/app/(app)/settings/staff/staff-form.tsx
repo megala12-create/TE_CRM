@@ -28,7 +28,7 @@ export function StaffForm({
             type="password"
             required={isNew}
             autoComplete="new-password"
-            hint={isNew ? "At least 10 characters with letters and numbers." : "Leave blank to keep the current password. Changing it logs the user out everywhere."}
+            hint={isNew ? "At least 5 characters with letters and numbers." : "Leave blank to keep the current password. Changing it logs the user out everywhere."}
           />
         </FormGrid>
       </FormSection>

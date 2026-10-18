@@ -10,3 +10,8 @@ storage/
 
 # Screens of the old Perfex CRM (may contain customer data)
 Screenshots/
+
+# Production secrets (never commit)
+.env*.local
+.env.production*
+.env.neon
