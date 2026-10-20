@@ -76,10 +76,20 @@ export function Pagination({
   );
 }
 
-/** Reads the `size` query param (10/25/50/100). */
+/** "All" rows on one page — capped so a very long list cannot freeze the browser. */
+export const ALL_ROWS = 10_000;
+
+/** Reads the `size` query param (10/25/50/100 or "all"). */
 export function pageSizeParam(v: string | string[] | undefined): number {
-  const n = Number(Array.isArray(v) ? v[0] : v);
+  const s = Array.isArray(v) ? v[0] : v;
+  if (s === "all") return ALL_ROWS;
+  const n = Number(s);
   return [10, 25, 50, 100].includes(n) ? n : 25;
+}
+
+/** The `size` query param for links: omitted for the default 25, "all" for All. */
+export function pageSizeQuery(size: number): string | undefined {
+  return size === 25 ? undefined : size === ALL_ROWS ? "all" : String(size);
 }
 
 function PageLink({ href, disabled, children }: { href: string; disabled: boolean; children: React.ReactNode }) {

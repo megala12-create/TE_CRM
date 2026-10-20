@@ -38,6 +38,7 @@ export function ListToolbar({ exportHref, extra, searchPlaceholder = "Search…"
             {PAGE_SIZES.map((n) => (
               <option key={n} value={n}>{n}</option>
             ))}
+            <option value="all">All</option>
           </select>
           {exportHref ? (
             <Link href={exportHref} prefetch={false} className="border-r border-slate-300 px-3 py-1.5 text-slate-700 hover:bg-slate-50">

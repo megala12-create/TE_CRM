@@ -9,7 +9,7 @@ import { saveColumns } from "@/server/list-actions";
 import { customerScope } from "@/server/scope";
 import { Badge, Card, EmptyState, LinkButton } from "@/components/ui";
 import { ColumnChooser } from "@/components/column-chooser";
-import { Pagination, buildHref, pageSizeParam } from "@/components/list-tools";
+import { Pagination, buildHref, pageSizeParam, pageSizeQuery } from "@/components/list-tools";
 import { ListToolbar, ToolbarSelect } from "@/components/list-toolbar";
 import { displayCustomValue } from "@/lib/custom-fields";
 import { CREDIT_NOTE_STATUSES, CREDIT_NOTE_STATUS_LABEL, CREDIT_NOTE_STATUS_TONE, type CreditNoteStatus } from "@/lib/doc-status";
@@ -59,7 +59,7 @@ export default async function CreditNotesPage({ searchParams }: { searchParams: 
     .orderBy(desc(c.id))
     .limit(size)
     .offset((page - 1) * size);
-  const params = { q: q || undefined, status: status || undefined, size: size === 25 ? undefined : String(size) };
+  const params = { q: q || undefined, status: status || undefined, size: pageSizeQuery(size) };
 
   return (
     <>

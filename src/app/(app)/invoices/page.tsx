@@ -10,7 +10,7 @@ import { invoiceStateWhere } from "@/server/invoice-queries";
 import { generateDueRecurringInvoices } from "@/server/recurring-invoices";
 import { Card, LinkButton } from "@/components/ui";
 import { ColumnChooser } from "@/components/column-chooser";
-import { Pagination, buildHref, pageSizeParam } from "@/components/list-tools";
+import { Pagination, buildHref, pageSizeParam, pageSizeQuery } from "@/components/list-tools";
 import { ListToolbar, ToolbarSelect } from "@/components/list-toolbar";
 import { InvoiceTable } from "@/components/invoice-table";
 import { INVOICE_STATE_LABEL, type InvoiceState } from "@/lib/invoice-status";
@@ -69,7 +69,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
     .orderBy(desc(i.date), desc(i.id))
     .limit(size)
     .offset((page - 1) * size);
-  const params = { q: q || undefined, status: status || undefined, size: size === 25 ? undefined : String(size), recurring: recurring ? "1" : undefined };
+  const params = { q: q || undefined, status: status || undefined, size: pageSizeQuery(size), recurring: recurring ? "1" : undefined };
 
   return (
     <>

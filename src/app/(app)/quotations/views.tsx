@@ -14,7 +14,7 @@ import { ActionForm, SubmitButton } from "@/components/action-form";
 import { FormSection } from "@/components/fields";
 import { CustomFieldInputs, customFieldItems } from "@/components/custom-field-inputs";
 import { ColumnChooser } from "@/components/column-chooser";
-import { Pagination, buildHref, pageSizeParam } from "@/components/list-tools";
+import { Pagination, buildHref, pageSizeParam, pageSizeQuery } from "@/components/list-tools";
 import { ListToolbar, ToolbarSelect } from "@/components/list-toolbar";
 import { PrintButton } from "@/components/print-button";
 import { displayCustomValue } from "@/lib/custom-fields";
@@ -75,7 +75,7 @@ export async function QuotationListView({ kind, searchParams }: { kind: QuoteKin
     .orderBy(desc(t.id))
     .limit(size)
     .offset((page - 1) * size);
-  const params = { q: q || undefined, status: status || undefined, size: size === 25 ? undefined : String(size) };
+  const params = { q: q || undefined, status: status || undefined, size: pageSizeQuery(size) };
 
   return (
     <>

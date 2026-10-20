@@ -11,7 +11,7 @@ import { generateDueRecurringExpenses } from "@/server/recurring-expenses";
 import { Badge, Card, DefinitionList, EmptyState, LinkButton } from "@/components/ui";
 import { ActionForm, SubmitButton } from "@/components/action-form";
 import { ColumnChooser } from "@/components/column-chooser";
-import { Pagination, buildHref, pageSizeParam } from "@/components/list-tools";
+import { Pagination, buildHref, pageSizeParam, pageSizeQuery } from "@/components/list-tools";
 import { ListToolbar, ToolbarSelect } from "@/components/list-toolbar";
 import { SelectAll } from "@/components/select-all";
 import { CategoryQuickAdd } from "@/components/category-quick-add";
@@ -111,7 +111,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
   ]);
   const params = {
     q: q || undefined, year: year ? String(year) : undefined, category: category ? String(category) : undefined,
-    size: size === 25 ? undefined : String(size),
+    size: pageSizeQuery(size),
   };
   const canBulk = can(user, "expenses.edit") || can(user, "expenses.delete");
   const canAddCategory = can(user, "expense_categories.create");

@@ -173,7 +173,7 @@ async function InvoicesReport({ user, sp, from, to, today }: { user: CurrentUser
         <label className="flex items-center gap-2">Marketing by
           <ToolbarSelect name="agent" label="Marketing by" options={[{ value: "", label: "All" }, ...staff.map((s) => ({ value: String(s.id), label: s.name }))]} />
         </label>
-        <ToolbarSelect name="size" label="Rows per page" options={[10, 25, 50, 100].map((n) => ({ value: n === 25 ? "" : String(n), label: `${n} rows` }))} />
+        <ToolbarSelect name="size" label="Rows per page" options={[...[10, 25, 50, 100].map((n) => ({ value: n === 25 ? "" : String(n), label: `${n} rows` })), { value: "all", label: "All rows" }]} />
         <Link className="link ml-auto" href={buildHref("/api/export/invoices", {})} prefetch={false}>Export all invoices</Link>
       </div>
       {rows.length === 0 ? <EmptyState title="No invoices in this period" /> : (
